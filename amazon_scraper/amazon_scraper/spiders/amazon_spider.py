@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 
 queries = ['tshirt for men']
+base_url = 'https://www.amazon.com.au'
 class AmazonSpider(scrapy.Spider):
     name = "amazon"
     def start_requests(self):
