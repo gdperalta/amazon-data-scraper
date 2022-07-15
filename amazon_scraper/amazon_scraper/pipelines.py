@@ -15,14 +15,13 @@ class AmazonScraperPipeline:
             if not v:
                 item[k] = ''  # replace empty list or None with empty string
                 continue
-            if k == 'Title':
-                item[k] = v.strip()
+            if k == 'FBA':
+                if 'Amazon' in v:
+                    item[k] = 'yes'
+                else:
+                    item[k] = 'no'
             elif k == 'Rating':
-                item[k] = v.replace(' out of 5 stars', '')
-            elif k == 'SellerUrl':
-                item[k] = 'https://www.amazon.com.au' + v
-            elif k == 'SellerName':
-                item[k] = v.replace('Visit the ', '')
+                item[k] = v + '% Positive'
             elif k == 'SellerRank':
                 string = " ".join([i.strip() for i in v if i.strip()])
                 new_string = string.replace('Best Sellers Rank: ', '')
