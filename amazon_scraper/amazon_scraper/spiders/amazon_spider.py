@@ -1,6 +1,4 @@
 import scrapy
-import re
-import json
 from urllib.parse import urlencode
 
 
@@ -10,21 +8,24 @@ class AmazonSpider(scrapy.Spider):
     name = "amazon"
     def start_requests(self):
         for query in queries:
-            url = 'https://www.amazon.com/s?' + urlencode({'k': query})
+            # url = f'{base_url}/s?' + urlencode({'k': query})
+            url = 'https://www.amazon.com.au/gp/bestsellers/kitchen'
             yield scrapy.Request(url=self.get_url(url), callback=self.parse_keyword_response)
 
 
     def parse_keyword_response(self, response):
-        products = response.xpath('//*[@data-asin]')
+        # products = response.xpath('//*[@data-asin]')
+        products = response.xpath('//*[@class="zg-grid-general-faceout"]/div/@id')
         for product in products:
-            asin = product.xpath('@data-asin').extract_first()
-            product_url = f"https://www.amazon.com/dp/{asin}"
+            # asin = product.xpath('@data-asin').extract_first()
+            asin = product.get()
+            product_url = f"{base_url}/dp/{asin}"
             yield scrapy.Request(url=self.get_url(product_url), callback=self.parse_product_page, meta={'asin': asin})
         # To scrape all pages
-        # next_page = response.xpath('//li[@class="a-last"]/a/@href').extract_first()
-        # if next_page:
-        #     url = urljoin("https://www.amazon.com",next_page)
-        #     yield scrapy.Request(url=self.get_url(url), callback=self.parse_keyword_response)
+        next_page = response.xpath('//li[@class="a-last"]/a/@href').extract_first()
+        if next_page:
+            url = base_url + next_page
+            yield scrapy.Request(url=self.get_url(url), callback=self.parse_keyword_response)        
 
 
     def parse_product_page(self, response):
@@ -32,24 +33,9 @@ class AmazonSpider(scrapy.Spider):
         seller_name = response.xpath('//*[@id="bylineInfo"]/text()').extract_first()
         asin = response.meta['asin']
         title = response.xpath('//*[@id="productTitle"]/text()').extract_first()
-        # image = re.search('"large":"(.*?)"',response.text).groups()[0]
+        seller_rank = response.xpath('//*[text()[contains(., "Best Sellers Rank")]]/parent::*//text()').extract()
         rating = response.xpath('//*[@id="acrPopover"]/@title').extract_first()
         number_of_reviews = response.xpath('//*[@id="acrCustomerReviewText"]/text()').extract_first()
-        # price = response.xpath('//*[@id="priceblock_ourprice"]/text()').extract_first()
-        # if not price:
-        #     price = response.xpath('//*[@data-asin-price]/@data-asin-price').extract_first() or \
-        #             response.xpath('//*[@id="price_inside_buybox"]/text()').extract_first()
-        # temp = response.xpath('//*[@id="twister"]')
-        # sizes = []
-        # colors = []
-        # if temp:
-        #     s = re.search('"variationValues" : ({.*})', response.text).groups()[0]
-        #     json_acceptable = s.replace("'", "\"")
-        #     di = json.loads(json_acceptable)
-        #     sizes = di.get('size_name', [])
-        #     colors = di.get('color_name', [])
-        # bullet_points = response.xpath('//*[@id="feature-bullets"]//li/span/text()').extract()
-        seller_rank = response.xpath('//*[text()="Best Sellers Rank:"]/parent::*//text()[not(parent::style)]').extract()
         yield {'SellerUrl': seller_url, 'SellerName': seller_name, 'asin': asin, 'Title': title, 'Rating': rating, 'NumberOfReviews': number_of_reviews, 'SellerRank': seller_rank}
 
     
