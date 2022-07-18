@@ -1,5 +1,6 @@
 /venv
 /data
-/amazon_scraper/amazon_scraper/__pycache__/
+__pycache__/
 *.py[cod]
+
 .env
