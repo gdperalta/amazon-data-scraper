@@ -24,8 +24,9 @@ class AmazonScraperPipeline:
                 item[k] = v + '% Positive'
             elif k == 'SellerRank':
                 string = " ".join([i.strip() for i in v if i.strip()])
-                new_string = string.replace('Best Sellers Rank: ', '')
-                item[k] = re.sub(r"\(([^\)]+)\)", ",", new_string)
+                string = string.replace('Best Sellers Rank: ', '')
+                string = string.replace('Best Sellers Rank ', '')
+                item[k] = re.sub(r"\(([^\)]+)\)", ",", string)
                 
         return item
 
